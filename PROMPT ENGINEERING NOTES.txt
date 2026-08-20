@@ -1,0 +1,339 @@
+PROMPT ENGINEERING NOTES
+
+EMBEDDING MODELS 
+
+Word2Vec -> A machine learning algorithm which generates a dense,distributed vector for a word. Ensures that similar words are placed together in the vector space.
+	->Made from CBOW(Continuous bag of words) and Skip-gram.
+	->(Trained on the entire English Wikipedia in 2013)
+
+	->Embedded models consider the history and future of a CENTER WORD(previous words and next words), instead of predicting the next word like LLMs
+	->SELF-SUPERVISED.(Data doesn't not require manual labeling)
+	->No need for human labels.
+	->is a SELF-SUPERVISED LEARNING ALGO, generates its OWN TRAINING LABELS from the structure of RAW TEXT WITHOUT HUMAN ANNOTATION.
+	
+	Hyperparametes
+	->corpus size/source/type
+	->context window
+	->vector dimensions
+	->context symmetry/position
+	->sampling frequent words/delete rare words
+
+	->RESULTING EMBEDDINGS ARE STATIC IN Word2vec.
+	->vector will be decided ones and dont change(single,fixed (static) vector regardless of where it appears).
+	->but vector will be different in a different context
+
+
+CBOW -> Predicts w(t) , the TARGET WORD using previous words , W(t-1) W(t-2) and W(+1) W(t+2)
+
+
+Advanced Neural Embeddings
+	->Models like BERT and GPT generate different embeddings for the same word depending on its context within a sentence.
+	->handles polsesmy well(same word meaning two different things).
+
+	ASPECTS			Word2Vec
+	Context Used		Yes,during training
+
+GLoVE -> Global Vectors for Word Representation 	
+	->UNSUPERVISED LEARNING ALGORITHM 
+	->Dense vector representations.
+	->using co-occurence patterns 
+	->captures semantic relationships.
+	->PRIMARY OBJECTIC TO CAPTURE SEMANTIC RELATIONSHIPS BETWEEN WORDS using Co-Occurence patterns.
+	->has PRE-DEFINED DENSE VECTORS FOR AROUND EVERY 6 BILLION WORDS of english literature wi
+	Used    ->Latenet Semantic Analysis(LSA) which uses global semantic information.
+		 and 
+		->Context-based models like Word2Vec which focuses on local word context
+		->for example king - man + woman = queen.
+
+LSA	->Latente Semantic Analysis(LSA) works by first CREATING A DOCUMENT TERM MATRIX SHOWING WORD REQUENCIES.
+	->Then uses Singular Value Decomposition(SVD) to reduce dimensions
+
+HOW DOES GLoVE work?	1->Preprocess the Text
+				->First,we split the text into individual words(tokenization) so that we can work with them.
+			2->Creating the Vocabulary
+			3->Create the Co-Occurence matrix
+			4->Performing Dot prduct ->aim is to learn word vectors such that the dot product of two word vectors reflects how often the words co-occur in the context.
+			5->Training the Word Vectors ->The model optimizes the word vectors.
+
+			The	0.3,0.1,0.5
+			Peon	0.2,0.4,1.0
+			
+			->You make a Co-occurence matrix of every word wrt to its immediate meighbour(Context size=1)
+
+PMI	->Pointwise Mutual Information (measure of how often two events x and y occur,compared with what we would expect if they were imdependent).
+	->B/w a TARGET WORD W AND A CONTEXT WORD C is then: 
+								PMI(w,c) = log2(P(w,c)/P(w)*P(c))
+	PPMI is preferred over PMI in practical NLP system because it removes unreliable negative associations.
+
+
+
+TRANSFORMERS & ATTENTION.
+
+
+TF-IDF (Statistical Text Representation)
+	->count based feature representation
+	->it does not learn semantic meaning from context.
+	
+	GOOD FOR -> keyword extraction,Document ranking,Classical ML models.SMall datesets
+	NOT GOOD FOR ->semantic search,Context understanding,LLM pipelines, RAG systems.
+	IT ANSWERS-> .How important is a word in  a document
+			.based on frequency and Rarity.
+
+	for example, Four documents D1,D2,D3,D4 having words like Apples,Banana,Fruit,Tech 
+
+			lets say Apple word frequency = [10,0,0,8]
+				Fruit word frequency = [7,5,0,5]
+
+		Cos(Apple,fruit) = (10*7 + 0*5 + 0*0 + 8*5) / (sqrt(10^2 + 8^2) * sqrt(7^2 + 5^2 + 5^2)) = 0.86 {denoting these 2 words have strong relationship with each other}
+				->note necessaryily semantic similarity, but how related are they in terms of same freuquency in particular documents.
+
+	TF(t,d) = f(t,d)
+
+	TF(t,d) = { 1 + log(f(t,d)) if f(t,d) > 0
+			0 otherwise
+	IDF(t) = log2(N / n(t))  		N-> total no. of does in the corpus
+						n(t)-> # of docs having it.
+
+
+	TF-IDFtdD = TFtd * IDFtd
+
+	A high value of TF - IDF for a term means that it IS BOTH FRQUENT WITHIN THE DOC & RARE ENOUGH IN THE CORUPS
+
+	Q) Consider a corpus of 4 docs
+	D1: The quick brown fox jumps over the lazy dog
+	D2:The lazy dog slppes all the day
+	D3: The quick brown fox hunts in the forrest.
+	D4; The lazy after noon in the forest
+
+	The | lazy | dog | quick | fox
+     D1 2      1     1       1      1
+     D2 2      1     1       0      0
+     D3 2      0     0       1      1
+     D4 1      1     0       0      0
+
+	IDF("the") = log(
+
+RECURRENT NEURAL NETWORKS (RNNs) (Sequential Modelling)
+
+->RNNs process sequences one step at a time,maintaining a hidden state that caries information forward.
+
+Sentence "The cat sat on the mat", when predicting the next word after "sat," the RNN uses previous word ("the Cat") to understand the context.
+LIMITATION: When the sentence is long ("The cat that chased the house sat on the mat") , early words face - the vanishing dradient problem.
+->This inspired LSTMs.
+
+ h0 - > h1 -> h2 -> h3 -> h4
+			.The final state h4 is called as the context vector which is idreally supposed to store the entire context of the sentence in a single vector.
+->for huge inputs, the hidden state will not be able to store LONG RANGE DEPENDENCIES and hence, the decoder will not be able to translate well given only the previous hidden stte words.
+->maintains something called a HIDDEN STATE.
+->think of it as the network's current MEMORY.
+
+"The" → RNN → h1
+
+"cat" → RNN → h2
+
+"sat" → RNN → h3
+
+"on" → RNN → h4
+
+"the" → RNN → h5
+
+"mat" → RNN → h6
+-------------------------------------
+ht​ depends on both xt​ and ht−1​
+---------------------------------------
+                 previous memory
+                       ↓
+current word → [  RNN  ] → new memory
+                       ↓
+                    output
+-------------------------------------------
+
+ht​=f(Wxh​xt​+Whh​ht−1​+bh​)
+
+---------------------------------------
+f is something like tanh
+
+--------------------------------------------
+TRANSFORMERS(Attention is all u need)
+
+->transformers use SELF_ATTENTION to look at all words simultaneously, learning realtionships between every pair of tokens.
+ex:- "the animal didn't cross because it was too tired."
+	->The model learns that it refers to animlal - even though they're far part - by assigning high attention weight between those words
+
+ADVANTAGES
+
+------------------
+"As the animal entered the forst, ... blending it into the shadows of the towering trees."
+
+here, "it" refers to "animal" earlier in the sentence.
+	->RNNs have a short reference window, if the input is too begin, "it" 's refernce will not be stored in the context window.
+
+	-.LSTM's and GRU's have a slightly
+
+RNNS's window
+As the animla netered theforst, ... blending |it into the shados of the towering trees.|
+
+
+LSMT's window- 
+As the animla netered theforst, |... blending it into the shados of the towering trees.|
+
+
+Attention window-
+|As the animla netered theforst, ... blending it into the shados of the towering trees.|
+
+LONGER WINDOW and CAN BE PROCESSED PARALLELY
+
+
+Self attention is finding attention between words of the same sentence SELF ATTENTION
+
+if we computed attention between words of different sentecnes, this is called cross-attention.
+ex- attention between every word of "I want to eat" and "main khana chahta hoon" 
+
+Attention tells the model what parts of the sentence to focus on.
+
+
+ATTENTION 
+->the database stores (key,value) pair
+->keys can be web page titles and values can be the web pages themselves.
+->when u search , your query's and each key's similarity is calculated and top N keys are displayed
+->Then when u click the link,the web page opens
+--------------------------------------------------------------
+                Attention
+                    │
+        ┌───────────┼───────────┐
+        ↓           ↓           ↓
+      Query        Keys       Values
+       Q            K           V
+        │           │           │
+        │           ↓           │
+        └── compare ────────────┘
+                    │
+              similarity
+                    ↓
+             attention weights
+                    ↓
+          weighted combination
+              of Values
+
+---------------------------------------------------------------------
+ (Q,K,V)
+| Search analogy                    | Attention            |
+| --------------------------------- | -------------------- |
+| Your search                       | **Query (Q)**        |
+| Searchable titles/labels          | **Keys (K)**         |
+| Actual information retrieved      | **Values (V)**       |
+| Similarity between query and keys | **Attention score**  |
+| How much each result matters      | **Attention weight** |
+----------------------------------------------------------------------
+
+COSINE SIMILARITY between two word-vectors can be calculated to find SIMILARITY,
+
+Cos([1,4,2],[1,0,5]) = (1*1 + 4*0 + 2*5)/sqrt(1^2+4^2+2^2)*sqrt(1^2+5^2)
+
+
+-------------------------------------------------------------------------
+ATTENTION
+https://chatgpt.com/c/6a79692f-ecd4-83e8-9fc2-83006b34404b
+
+A is the ATTENTION WEIGHT MATRIX
+
+A(Q,K,V) = softmax(QK^T / sqrt(dk))
+
+
+Take each Query, compare it with every Key, turn those similarities into weights using softmax, and use those weights to combine the Values.
+
+##same token + different context→different contextual representation​
+
+Think about the word "bank"
+
+This makes the purpose much clearer.
+
+Consider:
+
+Sentence 1
+
+I deposited money in the bank.
+
+Sentence 2
+
+I sat beside the river bank.
+
+The word:
+
+bank
+
+is the same token, but its contextual meaning is different.
+
+Attention allows the representation of "bank" to incorporate information from surrounding words.
+---------------------------------------------------------------
+A is the attention weight matrix (ATTENTION WEIGHT MATRIX)
+
+A = softmax(QK^T/dk)
+A IS ATTENTION WEIGHT MATRIX
+
+now,this is the part that completes A, V
+
+we have V = [v1 v2 v3]^T
+
+so the attention output is
+
+| O = AV|
+
+So, eventually we have multiplied our ATTENTION SELF MATRIX with VALUE MATRIX.
+
+o3 = 0.1v1 + 0.8v2 + 0.1v3
+
+So the new representation of "sat" contains:
+
+10% information from "The"
+80% information from "cat"
+10% information from "sat"
+
+That's the essence of attention.
+
+----------------------------------------------------------------------------
+             H
+             │
+       ┌─────┼─────┐
+   	    ↓     ↓     ↓
+      WQ    WK    WV    [LEARNED PARAMETER MATRICES by the transformer]
+       	   ↓     ↓     ↓
+       Q     K     V
+        \    │    /
+         \   │   /
+          QKᵀ
+           	      ↓
+     divide by √dₖ
+          	      ↓
+          Softmax
+          	          ↓
+      Attention weights
+       	          ↓
+            × V
+        	           ↓
+        Output O
+
+Attention(Q,K,V) = (softmax(QK^T / sqrt(dk)) V
+----------------------------------------------------------------------------
+The W's 
+		Wq, Wk,Wv are not MAUALLY CHOSEN
+		
+INITIALLY THEY ARE INTIALIZED WITH VALUES
+
+H
+ ↓
+Attention
+ ↓
+prediction
+ ↓
+compare with correct answer
+ ↓
+Loss
+ ↓
+Backpropagation
+ ↓
+update WQ, WK, WV
+
+
+----------------------------------------------------------------------------------
+
