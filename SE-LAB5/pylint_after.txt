@@ -1,0 +1,6 @@
+************* Module theater_system
+theater_system.py:69:4: W0603: Using the global statement (global-statement)
+
+------------------------------------------------------------------
+Your code has been rated at 9.86/10 (previous run: 5.87/10, +3.99)
+
